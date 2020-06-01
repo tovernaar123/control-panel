@@ -1,0 +1,11 @@
+{% if @user?.isManagement : %}
+<span class="badge badge-danger">Management</span>
+{% else if @user?.isAdmin : %}
+<span class="badge badge-secondary">Admin</span>
+{% else if @user?.isModerator : %}
+<span class="badge badge-success">Moderator</span>
+{% else if @user?.isDonator : %}
+<span class="badge badge-success">Donator</span>
+{% else : %}
+<span class="badge badge-info">Guest</span>
+{% end %}

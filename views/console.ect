@@ -1,0 +1,446 @@
+{% extends 'layout' %}
+{% block 'head' : %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/css/emojione.min.css" integrity="sha256-UZ7fDcAJctmoEcXmC5TPcZswNRqN/mLzj6uNS1GCVYs=" crossorigin="anonymous" />
+{% end %} {% block 'content' : %}
+{% if @user?.isAdmin : %}
+<div id="MODAL" class="modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Command output</h5>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <div class="progress">
+            <div id="PROGRESS" class="progress-bar progress-bar-striped progress-bar-animated bg-success bg-warning" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12"><h6>STDOUT</h6></div>
+            <div class="col-md-12"><pre class="px-2 text-white"><code id="STDOUT">Loading</code></pre></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12"><h6>STDERR</h6></div>
+            <div class="col-md-12"><pre class="px-2 text-white"><code id="STDERR">Loading</code></pre></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12"><h6>ERROR</h6></div>
+            <div class="col-md-12"><pre class="px-2 text-white"><code id="ERROR">Loading</code></pre></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% end %}
+<div id="ACTION" class="modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content bg-dark">
+      <div class="modal-header">
+        <h5 class="modal-title" id="action-title">Player Action</h5>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <form id="action-form">
+            <div class="form-group">
+              <label for="banUsername">Factorio username</label>
+              <input type="text" class="form-control" id="action-username" placeholder="Username">
+            </div>
+            <div class="form-group">
+              <label for="banReason">Reason (auto adds date and username)</label>
+              <textarea class="form-control" id="action-reason" rows="3" placeholder="Griefing, destroying power and more"></textarea>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" id="action-submit">Take action</button>
+      </div>
+    </div>
+  </div>
+</div> 
+<div class="main">
+  <nav class="navbar navbar-inverse navbar-dark bg-black top-nav">
+    <div class="btn-group" role="group" aria-label="Basic example">
+      {% if @user?.isAdmin : %}
+        {% include 'includes/controlButton', { id: 'start', type: 'success', icon: 'fas fa-play', text: ''} %}
+        {% include 'includes/controlButton', { id: 'stop', type: 'warning', icon: 'fas fa-pause', text: ''} %}
+        {% include 'includes/controlButton', { id: 'restart', type: 'warning', icon: 'fas fa-sync', text: ''} %}
+        {% include 'includes/controlButton', { id: 'reset', type: 'danger', icon: 'fas fa-code-branch', text: ''} %}
+        {% include 'includes/controlButton', { id: 'update', type: 'danger', icon: 'fas fa-cloud-download-alt', text: ''} %}
+        {% include 'includes/controlButton', { id: 'sync', type: 'info', icon: 'fab fa-discord', text: ''} %}
+        
+        <!-- {% include 'includes/controlButton', { id: 'unban', type: 'success', icon: 'fas fa-heart', text: ''} %}
+          {% include 'includes/controlButton', { id: 'kick', type: 'warning', icon: 'fas fa-crosshairs', text: ''} %}
+          {% include 'includes/controlButton', { id: 'jail', type: 'warning', icon: 'fas fa-trash-alt', text: ''} %} -->
+      {% end %}
+
+      {% include 'includes/controlButton', { id: 'ban', type: 'danger', icon: 'fas fa-ban', text: ''} %}
+      <div class="btn-group dropdown">
+        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-toolbox"></i>
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item preset" href="#">https://discord.explosivegaming.nl</a>
+          <a class="dropdown-item preset" href="#">https://www.explosivegaming.nl</a>
+          <a class="dropdown-item preset" href="#">NO LOOPS; LOOPS ARE BAD; JUST NO LOOPS!!!!!; IF YOU MAKE A LOOP.... IT WILL NOT END WELL!!!!!!!</a>
+          <a class="dropdown-item preset" href="#">All trains must be LHD!</a>
+          <a class="dropdown-item preset" href="#">You can get more information about us and the custom scenario from our wiki: https://wiki.explosivegaming.nl/</a>
+          <a class="dropdown-item preset" href="#">Do you have any feedback? You can leave it at https://exp.fider.io/</a>
+        </div>
+      </div>
+    </div>
+    <label id="ONLINE-LAB">Online: {%- @currentServer?.online.length %}</label>
+    <div class="btn-group" role="group" aria-label="Basic example">
+      {% include 'includes/consoleNavigation' %}
+      <div class="btn-group" role="group">
+        <button id="btnGroupDrop1" type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-users"></i>
+        </button>
+        <div class="dropdown-menu dropdown-align-right" aria-labelledby="btnGroupDrop1" style="width: 250px;">
+          <h4 class="dropdown-header">Users: <span id="USERS-COUNT">0</span></h4>
+          <ul class="list-group list-group-flush" id="USERS" style="max-height: 70vh; overflow-y: scroll;">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Loading...
+              <div>
+                <span class="badge badge-danger badge-pill"><i class="fas fa-user"></i></span>
+                <span class="badge badge-danger badge-pill"><i class="fas fa-user-secret"></i></span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="app" class="console"><i class="fas fa-spinner"></i> Loading</div>
+
+  <nav class="navbar navbar-inverse navbar-dark bg-black bottom-nav">
+    <form id="send-command">
+      <div class="input-group">
+        <input type="text" class="form-control" id="send-command-input" placeholder="Message{% if @user?.isManagement : %} or Command{% end %}">
+        <span class="input-group-btn">
+          <button class="btn btn-success" type="submit">
+            <i class="fas fa-angle-double-right"></i>
+          </button>
+        </span>
+      </div>
+    </form>
+  </nav>
+</div>
+{% end %} {% block 'scripts' : %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/lib/js/emojione.min.js" integrity="sha256-9cBkVeU53NiJ9/BdcJta3HbERAmf5X9DE2WvL8V+gDs=" crossorigin="anonymous"></script>
+<script type="text/javascript">
+  var isWindowActive = true
+  function uniq(a) {
+   return Array.from(new Set(a));
+  }
+  emojione.ascii = true;
+  $(document).on('ajaxError', function (event, xhr) {
+    if (xhr.status === 401 || xhr.status === 403) {
+      alert("Sorry, your session has expired.");
+      window.location.href = "/auth/discord";
+    }
+  });
+
+  var entityMap = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': '&quot;',
+    "'": '&#39;',
+    "/": '&#x2F;'
+  };
+
+  function escapeHtml(string) {
+    return String(string).replace(/[&<>"'\/]/g, function (s) {
+      return entityMap[s];
+    });
+  }
+
+  $(window).blur(function(){
+    isWindowActive = false
+  });
+  $(window).focus(function(){
+    isWindowActive = true
+  });
+
+  $("#app").html('<pre class="px-2 text-white"><code id="LOG"></code></pre>');
+
+  get(function () {
+    $("#app").scrollTop($("#app")[0].scrollHeight);
+  })
+
+  setInterval(get, 1500);
+  var previousRequest = ''
+  function get(cb) {
+    if (!isWindowActive) return;
+    $.get("/api/server/{%- @currentServer?.id %}/menu-status", function (data) {
+      const spies = data.spies.map(function (s) { return s.username.toLowerCase() })
+      const online = data.online.map(function (s) { return s.toLowerCase() })
+      const users = uniq(spies.concat(online))
+      
+      $('#USERS').html(users.map(function (user) {
+        return `
+<li class="list-group-item d-flex justify-content-between align-items-center">
+  ${user}
+  <div>
+    <span class="badge badge-${online.includes(user) ? 'success' : 'danger'} badge-pill"><i class="fas fa-user"></i></span>
+    <span class="badge badge-${spies.includes(user) ? 'success' : 'danger'} badge-pill"><i class="fas fa-user-secret"></i></span>
+  </div>
+</li>
+        `
+      }).join(''))
+      
+      $("#USERS-COUNT").html(`<i class="fas fa-user"></i>${data.online.length} <i class="fas fa-user-secret"></i>${data.spies.length}`)
+      $("#ONLINE-LAB").html(`Online: ${data.online.length}`)
+    })
+    $.get("/api/server/{%- @currentServer?.id %}/tail", function (data) {
+      if (previousRequest === data) return; else previousRequest = data
+      var final = "\n"
+      var lines = data.trim().split("\n")
+      lines.shift() // remove the first line because it is a partial log line
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].split(" ")
+        if (line[0] === "===") {
+          if (line[2] === "opened") {
+            final = final + `<span class="text-warning">===</span> Log <span class="text-success">${line[2]}</span> <span class="text-muted">${line[3]} ${line[4]}</span> <span class="text-warning">===</span>\n`
+          } else {
+            final = final + `<span class="text-warning">===</span> Log <span class="text-danger">${line[2]}</span> <span class="text-muted">${line[3]} ${line[4]}</span> <span class="text-warning">===</span>\n`
+          }
+        } else if (/[0-9]*-[0-9]*-[0-9]*/.test(line[0])) {
+          var type_color = "white"
+          if (line[2] === "[CHAT]") {
+            type_color = "primary"
+          } else if (line[2] === "[JOIN]" || line[2] === "[UNBANNED]") {
+            type_color = "success"
+          } else if (line[2] === "[LEAVE]" || line[2] === "[BAN]") {
+            type_color = "danger"
+          } else if (line[2] === "[COMMAND]" || line[2] === "[KICK]") {
+            type_color = "warning"
+          } else if (line[2] === "[COLOR]") {
+            type_color = "info rainbow"
+          }
+          final = final + `<span class="d-none d-md-inline text-muted">${line[0]}</span> <span class="text-muted">${line[1]}</span> <span class="text-${type_color}">${line[2]}</span> <span class="text-info factorio-username">${escapeHtml(line[3].replace(":", ""))}</span>: ${
+            escapeHtml(line.splice(4).join(" "))
+              .replace("[Owner]", "<span style=\"color: rgb(170, 0, 0)\">[Owner]</span>")
+              .replace("[Com Mngr]", "<span style=\"color: rgb(150, 68, 161)\">[Com Mngr]</span>")
+              .replace("[Dev]", "<span style=\"color: rgb(179, 125, 46)\">[Dev]</span>")
+              .replace("[Mod]", "<span style=\"color: rgb(0, 170, 0)\">[Mod]</span>")
+              .replace("[Trainee]", "<span style=\"color: rgb(0, 196, 137)\">[Trainee]</span>")
+              .replace("[Sponsor]", "<span style=\"color: rgb(247, 246, 54)\">[Sponsor]</span>")
+              .replace("[P2W]", "<span style=\"color: rgb(238, 172, 44)\">[P2W]</span>")
+              .replace("[Donator]", "<span style=\"color: rgb(230, 99, 34)\">[Donator]</span>")
+              .replace("[Partner]", "<span style=\"color: rgb(140, 120, 200)\">[Partner]</span>")
+              .replace("[Veteran]", "<span style=\"color: rgb(26, 118, 156)\">[Veteran]</span>")
+              .replace("[Regular]", "<span style=\"color: rgb(79, 155, 163)\">[Regular]</span>")
+              .replace("[Root]", "<span style=\"color: rgb(255, 255, 255)\">[Root]</span>")
+              .replace("[Admin]", "<span style=\"color: rgb(233, 63, 233)\">[Admin]</span>")
+              .replace("[Member]", "<span style=\"color: rgb(24, 172, 188)\">[Member]</span>")
+              .replace("[Guest]", "<span style=\"color: rgb(185, 187, 160)\">[Guest]</span>")
+              .replace("[Jail]", "<span style=\"color: rgb(50, 50, 50)\">[Jail]</span>")
+
+              .replace(/(https?:\/\/[a-zA-Z0-9\.\/\?\=\-\_]+)/g, "<a href=\"$1\" target=\"_blank\">$1</a>")
+            }\n`
+        } else {
+          final = final + `<span class="text-danger">${escapeHtml(line.join(" "))}</span>\n`
+        }
+      }
+      $("#LOG").html(emojione.toImage(final))
+      if (typeof (cb) === "function") {
+        cb()
+      }
+    });
+  }
+  $("#send-command").submit(function (event) {
+    event.preventDefault();
+    const command = document.getElementById("send-command-input").value.trim()
+    if (command.startsWith('/')) {
+      /* {% if @user?.isManagement : %} */
+      start()
+      $.ajax({
+        url:"/api/server/{%- @currentServer?.id %}/command",
+        method:"POST",
+        data:{
+          data: command,
+        },
+        success:function(data) {
+          stop({ response: { stdout: data.response, stderr: data.data, error: data.error}})
+          document.getElementById("send-command-input").value = ""
+        },
+        error:function(){
+          alert("error");
+        }
+      });
+      /* {% else : %} */
+      alert('You are not allowed to send commands!')
+      /* {% end %} */
+    } else {
+      $.ajax({
+        url:"/api/server/{%- @currentServer?.id %}/message",
+        method:"POST",
+        data:{
+          data: command,
+        },
+        success:function(data) {
+          if (data.error) alert('ERROR: ' + data.error);
+          document.getElementById("send-command-input").value = ""
+        },
+        error:function(){
+          alert("error");
+        }
+      });
+    }
+  });
+
+  $(document).on("click", ".factorio-username", function () {
+    var username = $(this).text();
+    insertTextAtCursor(document.getElementById("send-command-input"), username + " ")
+  });
+
+  function insertTextAtCursor(el, text) {
+    var val = el.value, endIndex, range;
+    if (typeof el.selectionStart != "undefined" && typeof el.selectionEnd != "undefined") {
+        endIndex = el.selectionEnd;
+        el.value = val.slice(0, el.selectionStart) + text + val.slice(endIndex);
+        el.selectionStart = el.selectionEnd = endIndex + text.length;
+    } else if (typeof document.selection != "undefined" && typeof document.selection.createRange != "undefined") {
+        el.focus();
+        range = document.selection.createRange();
+        range.collapse(false);
+        range.text = text;
+        range.select();
+    }
+}
+
+$(".preset").on('click', function () {
+  var value = $(this)[0].innerText
+  console.log(value)
+  $.ajax({
+    url:"/api/server/{%- @currentServer?.id %}/message",
+    method:"POST",
+    data:{
+      data: value,
+    },
+    success:function(data) {
+      if (data.error) alert('ERROR: ' + data.error);
+      console.log(data)
+    },
+    error:function(){
+      alert("error");
+    }
+  });
+});
+
+$("#ban").click(function () {
+  $('#action-title').html(`Player Action: Ban`)
+  $('#ACTION').modal('show')
+});
+
+$("#action-submit").click(function () {
+  const username = document.getElementById('action-username')
+  const reason = document.getElementById('action-reason')
+  if (confirm(`Are you sure you want to ban: ${username.value}?`)) {
+    $.ajax({
+      url:"/api/server/{%- @currentServer?.id %}/ban",
+      method:"POST",
+      data:{
+        username: username.value, reason: reason.value
+      },
+      success:function(data) {
+        username.value = ''
+        reason.value = ''
+        console.log(data)
+      },
+      error:function(){
+        alert("error");
+      }
+    });
+  }
+});
+
+/* {% if @user?.isAdmin : %} */
+var MODAL = $('#MODAL')
+var PROGRESS = $('#PROGRESS')
+var STDOUT = $('#STDOUT')
+var STDERR = $('#STDERR')
+var ERROR = $('#ERROR')
+
+function start () {
+  STDOUT.html('Waiting for stdout!')
+  STDERR.html('Waiting for stderr!')
+  ERROR.html('Waiting for error!')
+  PROGRESS.toggleClass('progress-bar-animated', true)
+  PROGRESS.toggleClass('bg-warning', true)
+  MODAL.modal('show')
+}
+
+function stop (data) {
+  MODAL.modal('show')
+  STDOUT.html(data.response.stdout || 'No stdout')
+  STDERR.html(data.response.stderr || 'No stderr')
+  ERROR.html(data.response.error || 'No error')
+  PROGRESS.toggleClass('progress-bar-animated', false)
+  PROGRESS.toggleClass('bg-warning', false)
+  console.log(data);
+}
+
+$("#start").click(function () {
+  start()
+  if (confirm("Are you sure you want to start this server?")) {
+    $.get("/api/server/{%- @currentServer?.id %}/start", function (data) {
+      stop(data)
+    });
+  }
+});
+
+$("#stop").click(function () {
+  start()
+  if (confirm("Are you sure you want to stop this server?")) {
+    $.get("/api/server/{%- @currentServer?.id %}/stop", function (data) {
+      stop(data)
+    });
+  }
+});
+
+$("#restart").click(function () {
+  start()
+  if (confirm("Are you sure you want to restart this server?")) {
+    $.get("/api/server/{%- @currentServer?.id %}/restart", function (data) {
+      stop(data)
+    });
+  }
+});
+
+$("#reset").click(function () {
+  start()
+  if (confirm("Are you sure you want to reset this server?")) {
+    $.get("/api/server/{%- @currentServer?.id %}/reset", function (data) {
+      stop(data)
+    });
+  }
+});
+
+$("#update").click(function () {
+  start()
+  if (confirm("Are you sure you want to update this server to the latest version?")) {
+    $.get("/api/server/{%- @currentServer?.id %}/update", function (data) {
+      stop(data)
+    });
+  }
+});
+
+$("#sync").click(function () {
+  start()
+  if (confirm("Are you sure you want to sync the Discord roles to this server?")) {
+    $.get("/api/server/{%- @currentServer?.id %}/sync", function (data) {
+      stop(data)
+    });
+  }
+});
+
+/* {% end %} */
+</script> {% end %}

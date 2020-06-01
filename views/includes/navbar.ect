@@ -1,0 +1,40 @@
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-black ">
+  <a class="navbar-brand text-white" href="/">ExpGaming</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+    aria-expanded="false" aria-label="Toggle navigation">
+    <span class="text-white navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      {% for server in @servers : %}
+      <li class="nav-item">
+        <a class="nav-link active text-white" href="/server/{%- server.id %}/{%- @serverPage %}">
+          <i class="fas fa-server {% if server.running : %}text-success{% else : %}text-danger{% end %}"></i> S{%- server.id %}
+        </a>
+      </li>
+      {% end %}
+    </ul>
+    <ul class="navbar-nav">
+      {% if @user : %}
+        <li class="nav-item dropdown active">
+          <button class="nav-link btn btn-primary btn-deep-orange dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">
+            <i class="fas fa-user-circle"></i>
+            {%- @user.username %}
+            {% include 'includes/badge' %}
+          </button>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a class="dropdown-item" href="/auth/user"><i class="fas fa-cog"></i> Account</a>
+          </div>
+        </li>
+      {% else : %}
+        <li class="nav-item">
+          <a class="nav-link" href="/auth/discord">
+          <i class="fab fa-discord"></i> Login</a>
+        </li>
+      {% end %}
+    </ul>
+  </div>
+</nav>

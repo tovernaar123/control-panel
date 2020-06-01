@@ -1,0 +1,50 @@
+{% extends 'layout' %} 
+{% block 'head' : %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.1/css/responsive.bootstrap4.min.css">
+{% end %}
+{% block 'content' : %}
+<div class="main">
+  <nav class="navbar navbar-inverse navbar-dark bg-black top-nav">
+    <div class="btn-group" role="group" aria-label="Basic example">
+    </div>
+    <div class="btn-group" role="group" aria-label="Basic example">
+        {% include 'includes/consoleNavigation' %}
+    </div>
+  </nav>
+
+  <div id="app" class="console"><i class="fas fa-spinner"></i> Loading</div>
+
+  <nav class="navbar navbar-inverse navbar-dark bg-black bottom-nav">
+    <form>
+    </form>
+  </nav>
+</div>
+{% end %} {% block 'scripts' : %}
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.2.1/js/dataTables.responsive.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.2.1/js/responsive.bootstrap4.min.js"></script>
+<script type="text/javascript">
+  $.get("/api/server/{%- @currentServer?.id %}/banlist", function (data) {
+    const banlist = data.map(function (ban) {
+      if (typeof ban === 'string') {
+        return { username: ban || 'NULL', reason: 'NULL' }
+      } else {
+        return { username: ban.username || 'NULL', reason: ban.reason || 'NULL'}
+      }
+    })
+    $("#app").html('<div class="container-fluid"><div class="row p-3"><table id="TABLE" class="table table-dark table-striped table-bordered dt-responsive compact"></table></div></div>');
+    $('#TABLE').DataTable( {
+      paging: false,
+      autoWidth: true,
+      data: banlist,
+      columns: [
+        { data: 'username', title: 'Username' },
+        { data: 'reason', title: 'Reason' }
+      ]
+    });
+  })
+  /* {% if @user?.isAdmin : %} */
+  /* {% end %} */
+</script> {% end %}

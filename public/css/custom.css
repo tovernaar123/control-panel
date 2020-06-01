@@ -1,0 +1,130 @@
+html, body {
+  height:100%;
+  min-height:100%;
+}
+.main {
+  padding-top: 56px;
+  height:100%;
+  display: flex;
+  flex-direction: column;
+}
+.top-nav {
+  flex: .5;
+}
+.console {
+  flex: 9;
+  overflow-y: scroll;
+}
+.console::-webkit-scrollbar-track
+{
+	background-color: #2C2F33;
+}
+
+.console::-webkit-scrollbar
+{
+	width: 10px;
+	background-color: #23272A;
+}
+
+.console::-webkit-scrollbar-thumb
+{
+	border-radius: 8px;
+	background-color: #23272A;
+}
+.bottom-nav {
+  flex: .5;
+}
+
+.bg-dark {
+  background-color: #2C2F33 !important
+}
+.bg-black {
+  background-color: #23272A !important
+}
+pre {
+  display:block;
+  font: normal 14px/16px Consolas, monaco, monospace !important;
+  white-space: pre-wrap;       /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+  overflow: hidden;
+}
+
+.rainbow {
+  background-image: -webkit-gradient( linear, left top, right top, color-stop(0, #f22), color-stop(0.15, #f2f), color-stop(0.3, #22f), color-stop(0.45, #2ff), color-stop(0.6, #2f2),color-stop(0.75, #2f2), color-stop(0.9, #ff2), color-stop(1, #f22) ) !important;
+  background-image: gradient( linear, left top, right top, color-stop(0, #f22), color-stop(0.15, #f2f), color-stop(0.3, #22f), color-stop(0.45, #2ff), color-stop(0.6, #2f2),color-stop(0.75, #2f2), color-stop(0.9, #ff2), color-stop(1, #f22) ) !important;
+  color:transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+.factorio-username {
+  cursor: pointer;
+}
+
+#send-command {
+  width: 100%;
+}
+
+#TABLE tr {
+  color: #fff
+}
+
+#TABLE tr {
+  background-color: transparent
+}
+
+.Regular, .Member {
+  color: #18ACBC 
+}
+.Donator, .Admin {
+  color: #E93FE9 
+}
+.Veteran {
+  color: #8C78C8
+}
+.Mod {
+  color: #00AA00
+}
+.Community_Manager {
+  color: #9644A1
+}
+.Owner {
+  color: #AA0000
+}
+.Developer {
+  color: #B37D2E
+}
+.Jail, .Root {
+  color: #AAAAAA
+}
+.Guest {
+  color: #FF9F1C
+}
+
+.dropdown-align-right {
+  right: 0;
+  left: auto;
+}
+.bg-primary {
+  background-color: #ff5722 !important
+}
+
+.btn-deep-orange{
+  background-color: #ff5722 !important;
+  border-color: #ff5722 !important;
+}
+
+.btn-deep-orange:hover{
+  background-color: #f36337 !important;
+  border-color: #f36337 !important;
+}
+
+.show>.btn-deep-orange.dropdown-toggle:focus {
+  box-shadow: 0 0 0 0.2rem rgba(243, 99, 55, .5);
+}
+
+.btn-deep-orange.focus, .btn-deep-orange:focus {
+  box-shadow: 0 0 0 0.2rem rgba(243, 99, 55, .5);
+}

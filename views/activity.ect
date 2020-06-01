@@ -1,0 +1,88 @@
+{% extends 'layout' %}
+{% block 'head' : %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/assets/css/emojione.min.css" integrity="sha256-UZ7fDcAJctmoEcXmC5TPcZswNRqN/mLzj6uNS1GCVYs=" crossorigin="anonymous" />
+{% end %} {% block 'content' : %}
+<div class="main">
+  <nav class="navbar navbar-inverse navbar-dark bg-black top-nav">
+    <div class="btn-group" role="group" aria-label="Basic example">
+    </div>
+    <div class="btn-group" role="group" aria-label="Basic example">
+        {% include 'includes/consoleNavigation' %}
+    </div>
+  </nav>
+
+  <div id="app" class="console"><i class="fas fa-spinner"></i> Loading</div>
+  
+  <nav class="navbar navbar-inverse navbar-dark bg-black bottom-nav">
+    <form>
+    </form>
+  </nav>
+</div>
+{% end %} {% block 'scripts' : %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/emojione/2.2.7/lib/js/emojione.min.js" integrity="sha256-9cBkVeU53NiJ9/BdcJta3HbERAmf5X9DE2WvL8V+gDs=" crossorigin="anonymous"></script>
+<script type="text/javascript">
+  emojione.ascii = true;
+  $(document).on('ajaxError', function (event, xhr) {
+    if (xhr.status === 401 || xhr.status === 403) {
+      alert("Sorry, your session has expired.");
+      window.location.href = "/";
+    }
+  });
+
+  $("#app").html('<pre class="px-2 text-white"><code id="LOG"></code></pre>');
+
+  get(function () {
+    $("#app").scrollTop($("#app")[0].scrollHeight);
+  })
+  var previousRequest = ''
+  function get(cb) {
+    $.get("/api/activity/{%- @username %}{%- '/' + @currentServer?.id || '' %}", function (res) {
+      const data = res.response.stdout
+      var final = "\n"
+      var lines = data.trim().split("\n")
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].split(" ")
+        if (line[0] === "===") {
+          if (line[2] === "opened") {
+            final = final + `<span class="text-warning">===</span> Log <span class="text-success">${line[2]}</span> <span class="text-muted">${line[3]} ${line[4]}</span> <span class="text-warning">===</span>\n`
+          } else if (line[2] === "closed") {
+            final = final + `<span class="text-warning">===</span> Log <span class="text-danger">${line[2]}</span> <span class="text-muted">${line[3]} ${line[4]}</span> <span class="text-warning">===</span>\n`
+          } else {
+            final = final + `<span class="text-warning">===</span> Log <span class="text-info">${line[1]}</span> <span class="text-muted">${line[2]}</span> <span class="text-warning">===</span>\n`
+          }
+        } else if (/[0-9]*-[0-9]*-[0-9]*/.test(line[0])) {
+          var type_color = "white"
+          if (line[2] === "[CHAT]") {
+            type_color = "primary"
+          } else if (line[2] === "[JOIN]" || line[2] === "[UNBANNED]") {
+            type_color = "success"
+          } else if (line[2] === "[LEAVE]" || line[2] === "[BAN]") {
+            type_color = "danger"
+          } else if (line[2] === "[COMMAND]" || line[2] === "[KICK]") {
+            type_color = "warning"
+          } else if (line[2] === "[COLOR]") {
+            type_color = "info rainbow"
+          }
+          final = final + `<span class="hidden-sm-down text-muted">${line[0]}</span> <span class="text-muted">${line[1]}</span> <span class="text-${type_color}">${line[2]}</span> <span class="text-info factorio-username">${line[3].replace(":", "").replace("\\\'", "").replace("<", "&lt").replace(">", "&gt")}</span>: ${
+            line.splice(4).join(" ").replace("<", "&lt").replace(">", "&gt")
+              .replace(/(\[Regular\]|\[Member\])/g, "<span style=\"color: #18ACBC\">$1</span>")
+              .replace(/(\[P2W\]|\[Admin\])/g, "<span style=\"color: #E93FE9\">$1</span>")
+              .replace("[Veteran]", "<span style=\"color: #8C78C8\">[Veteran]</span>")
+              .replace("[Mod]", "<span style=\"color: #00AA00\">[Mod]</span>")
+              .replace("[Com Mngr]", "<span style=\"color: #9644A1\">[Com Mngr]</span>")
+              .replace("[Owner]", "<span style=\"color: #AA0000\">[Owner]</span>")
+              .replace("[Dev]", "<span style=\"color: #B37D2E\">[Dev]</span>")
+              .replace("[Jail]", "<span style=\"color: #AAAAAA\">[Jail]</span>")
+              .replace(/(https?:\/\/[a-zA-Z0-9\.\/\?\=\-\_]+)/g, "<a href=\"$1\" target=\"_blank\">$1</a>")
+            }\n`
+        } else {
+          final = final + `<span class="text-danger">${line.join(" ").replace("<", "&lt").replace(">", "&gt")}</span>\n`.trim()
+        }
+      }
+      $("#LOG").html(emojione.toImage(final))
+      if (typeof (cb) === "function") {
+        cb()
+      }
+    });
+  }
+</script> {% end %}

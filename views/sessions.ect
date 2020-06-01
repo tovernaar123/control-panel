@@ -1,0 +1,68 @@
+{% extends 'layout' %} 
+{% block 'head' : %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.1/css/responsive.bootstrap4.min.css">
+{% end %}
+{% block 'content' : %}
+<div class="main">
+  <nav class="navbar navbar-inverse navbar-dark bg-black top-nav">
+  </nav>
+
+  <div id="app" class="console"><i class="fas fa-spinner"></i> Loading</div>
+
+  <nav class="navbar navbar-inverse navbar-dark bg-black bottom-nav">
+    <form>
+    </form>
+  </nav>
+</div>
+{% end %} {% block 'scripts' : %}
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.2.1/js/dataTables.responsive.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.2.1/js/responsive.bootstrap4.min.js"></script>
+<script type="text/javascript">
+  
+  /* {% if @user?.isManagement : %} */
+  $("#app").html('<div class="container-fluid"><div>Perms: R=Root, A=Admin, M=Moderator, D=Donator</div><div class="row p-3"><table id="TABLE" class="table table-dark table-striped table-bordered dt-responsive compact"></table></div></div>');
+  $('#TABLE').DataTable( {
+    paging: false,
+    autoWidth: true,
+    data: JSON.parse(`{%- JSON.stringify(@sessions) %}`).map(session => {
+      console.log(session)
+      const user = session.passport.user
+      return {
+        did: user.id,
+        username: user.username,
+        ip: user.ip || 'no ip',
+        perms: `<pre class="text-white">${user.isManagement ? 'R' : '-'}${user.isAdmin ? 'A' : '-'}${user.isModerator ? 'M' : '-'}${user.isDonator ? 'D' : '-'}</pre>`,
+        remove: `<button id="${session.key}" class="btn btn-danger remove-session">Remove</button>`
+      }
+    }),
+    columns: [
+      { data: 'did', title: 'D ID' },
+      { data: 'username', title: 'D Username' },
+      { data: 'ip', title: 'IP' },
+      { data: 'perms', title: 'Perms' },
+      { data: 'remove', title: 'Remove' }
+    ]
+  });
+
+  $('.remove-session').click(function () {
+    const id = $(this)[0].id
+    $.ajax({
+        url:"/remsession",
+        method:"POST",
+        data:{
+          key: id,
+        },
+        success:function(data) {
+          if (data.error) alert('ERROR: ' + data.error);
+          alert(data.response)
+        },
+        error:function(){
+          alert("error");
+        }
+      });
+  })
+  /* {% end %} */
+</script> {% end %}

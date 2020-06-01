@@ -1,0 +1,139 @@
+{% extends 'layout' %}
+{% block 'content' : %}
+<div class="main">
+    <nav class="navbar navbar-inverse navbar-dark bg-black top-nav">
+    </nav>
+
+    <div id="app" class="console">
+        <div class="p-2">
+            <div class="alert alert-info" role="alert">
+                {% if @user : %}
+                <h3 class="alert-heading">Welcome to the Explosive Gaming Control Panel!</h3>
+                {% else : %}
+                <h3 class="alert-heading">Please login to view this page!</h3>
+                {% end %}
+                <p>This is a temporary CP to control and to moderate our servers.</p>
+            </div>
+
+            {% if !@user?.isModerator : %}
+            <div class="alert alert-danger" role="alert">
+                <h3 class="alert-heading">You do not have any permissions!</h3>
+                <p>You are probably not meant to be here! If you are contact @badgamernl#1784 on Discord!</p>
+            </div>
+            {% end %}
+            
+            {% if @user?.isModerator : %}
+            <div class="alert alert-info" role="alert">
+                <h3 class="alert-heading">Download a server log</h3>
+                <p>!!! Only the log from the current month is downloadable for moderators because of privacy reasons, if you want to research a log ask an admin for the specific part of a log !!!</p>
+                <form id="download-log">
+                    <div class="form-row">
+                        <div class="col-2">
+                            <select class="form-control" id="download-log-servers">
+                                <option>Select a server!</option>
+                                {% for server in @servers : %}
+                                    <option>{%- server.file %}</option>
+                                {% end %}
+                            </select>
+                        </div>
+                        <div class="col-2">
+                            <select class="form-control" id="download-log-files">
+                                <option>console.log</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <a id="download-log-button" class="btn btn-primary disabled" href="/files/download-file.pdf" download>Download Log</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            {% end %}
+
+            {% if @user?.isAdmin : %}
+            <div class="alert alert-info" role="alert">
+                    <h3 class="alert-heading">Check player activity</h3>
+                    <form id="activity-log">
+                        <div class="form-row">
+                            <div class="col-2">
+                                <select class="form-control" id="activity-log-servers">
+                                    <option>ALL</option>
+                                    {% for server in @servers : %}
+                                        <option>{%- server.file %}</option>
+                                    {% end %}
+                                </select>
+                            </div>
+                            <div class="col-2">
+                                <input type="text" class="form-control" id="activity-log-username" aria-describedby="activityUsername" placeholder="Enter username">
+                            </div>
+                            <div class="col">
+                                <a id="activity-log-button" class="btn btn-primary disabled" href="/server/1/activity/USERNAME">Check Logs</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            {% end %}
+        </div>
+    </div>
+
+    <nav class="navbar navbar-inverse navbar-dark bg-black bottom-nav">
+    </nav>
+</div>
+{% end %} {% block 'scripts' : %}
+<script type="text/javascript">
+/* {% if @user?.isModerator : %} */
+function formatBytes(a,b){if(0==a)return"0 Bytes";var c=1024,d=b||2,e=["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f]}
+
+const button = $('#download-log-button')
+$("#download-log-servers").change(function() {
+    const server = $("#download-log-servers option:selected")['0'].value.replace('factorio', '')
+    if (server == 'Select a server!') return button.toggleClass('disabled', true)
+    /* {% if @user?.isModerator : %} */
+    button.toggleClass('disabled', false)
+    const options = []
+    options.unshift('<option>console.log</option>')
+    $("#download-log-files").html(options.join(''))
+    /* {% end %} */
+    /* {% if @user?.isAdmin : %} */
+    $.get(`/api/server/${server}/logs`, function (data) {
+        button.toggleClass('disabled', false)
+        const options = data.map(function (log) {
+            return `<option>${log.name} ${formatBytes(log.size)}</option>`
+        })
+        options.unshift('<option>console.log</option>')
+        $("#download-log-files").html(options.join(''))
+    })
+    /* {% end %} */
+});
+
+$("#download-log-servers").change(function() {
+    const server = $("#download-log-servers option:selected")['0'].value.replace('factorio', '')
+    const file = $("#download-log-files option:selected")['0'].value
+    button.attr('href', `/server/${server}/${file}`)
+});
+/* {% end %} */
+
+/* {% if @user?.isAdmin : %} */
+const button2 = $('#activity-log-button')
+const input2 = $('#activity-log-username')
+$("#activity-log-servers").change(function() {
+    const server = $("#activity-log-servers option:selected")['0'].value.replace('factorio', '')
+    button2.attr('href', `/activity/${input2.val() || 'undefined'}/${server}`)
+});
+
+input2.on('input', function() {
+    const value = input2.val()
+    if (value.length <= 0) return button2.toggleClass('disabled', true)
+    button2.toggleClass('disabled', false)
+    const server = $("#activity-log-servers option:selected")['0'].value.replace('factorio', '')
+    button2.attr('href', `/activity/${value || 'undefined'}/${server}`)
+});
+$("#activity-log").submit(function( event ) {
+    const value = input2.val()
+    event.preventDefault();
+    if (value.length <= 0) return
+    const server = $("#activity-log-servers option:selected")['0'].value.replace('factorio', '')
+    window.location = `/activity/${value || 'undefined'}/${server}`
+});
+/* {% end %} */
+</script>
+{% end %}

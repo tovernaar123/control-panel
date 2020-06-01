@@ -1,0 +1,60 @@
+{% extends 'layout' %} 
+{% block 'head' : %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.1/css/responsive.bootstrap4.min.css">
+{% end %}
+{% block 'content' : %}
+<div class="main">
+  <nav class="navbar navbar-inverse navbar-dark bg-black top-nav">
+    <div class="btn-group" role="group" aria-label="Basic example">
+    </div>
+    <div class="btn-group" role="group" aria-label="Basic example">
+        {% include 'includes/consoleNavigation' %}
+    </div>
+  </nav>
+
+  <div id="app" class="console"><i class="fas fa-spinner"></i> Loading</div>
+
+  <nav class="navbar navbar-inverse navbar-dark bg-black bottom-nav">
+    <form>
+    </form>
+  </nav>
+</div>
+{% end %} {% block 'scripts' : %}
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.2.1/js/dataTables.responsive.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.2.1/js/responsive.bootstrap4.min.js"></script>
+<script type="text/javascript">
+  $.get("/api/server/{%- @currentServer?.id %}/server-info", function (data) {
+    let players = []
+    for (const key in data.ranks) {
+      if (data.ranks.hasOwnProperty(key)) {
+        const rank = data.ranks[key].players;
+        rank.forEach(player => {
+          const ticks = data.players.times[player][0]
+          players.push({
+            username: player,
+            rank: `<span class="${key.replace(' ', '_')}">${key}</span>`,
+            online: data.players.online.includes(player) ? '<span class="badge badge-success">Online</span>' : '<span class="badge badge-danger">Offline</span>',
+            time: `${("0" + Math.floor(ticks / 60 / 60 / 60)).slice(-2)} H ${("0" + Math.floor(ticks / 60 / 60 - Math.floor(ticks / 60 / 60 / 60) * 60)).slice(-2)} M`
+          })
+        });
+      }
+    }
+    $("#app").html('<div class="container-fluid"><div class="row p-3"><table id="TABLE" class="table table-dark table-bordered dt-responsive nowrap"></table></div></div>');
+    $('#TABLE').DataTable( {
+      paging: false,
+      autoWidth: false,
+      data: players,
+      columns: [
+        { data: 'username', title: 'Username' },
+        { data: 'rank', title: 'Rank' },
+        { data: 'online', title: 'Online' },
+        { data: 'time', title: 'Total time online' }
+      ]
+    });
+  })
+  /* {% if @user?.isAdmin : %} */
+  /* {% end %} */
+</script> {% end %}
