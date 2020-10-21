@@ -202,9 +202,9 @@ app.use(morgan('dev', {
 
 // AUTHENTICATION
 passport.use(new DiscordStrategy({
-  clientID: process.env.DISCORD_APP_ID,
-  clientSecret: process.env.DISCORD_APP_SECRET,
-  callbackURL: process.env.DISCORD_APP_CALLBACK_URL,
+  clientID: '731078310079103017',
+  clientSecret: 'E8cdVoH4IV-wVy-EZuNvyKFl10dB2BKL',
+  callbackURL: 'https://discord.com/api/oauth2/authorize',
   scope: SCOPES,
 }, (accessToken: any, refreshToken: any, profile: any, done: (err: Error | null, user?: any, info?: any) => void) => {
   process.nextTick(() => done(null, profile));
